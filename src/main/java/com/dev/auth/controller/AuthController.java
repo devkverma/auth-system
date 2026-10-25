@@ -10,6 +10,10 @@ import org.springframework.web.bind.annotation.*;
 import com.dev.auth.dto.LoginRequest;
 import com.dev.auth.dto.TokenResponse;
 
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.core.Authentication;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -31,5 +35,18 @@ public class AuthController {
     @PostMapping("/login")
     public TokenResponse login(@Valid @RequestBody LoginRequest request) {
         return authService.login(request);
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> logout(
+            HttpServletRequest request,
+            Authentication authentication
+    ) {
+        String authorization = request.getHeader(HttpHeaders.AUTHORIZATION);
+        String token = authorization.substring(7).trim();
+
+        authService.logout(token, authentication.getName());
+
+        return ResponseEntity.noContent().build();
     }
 }

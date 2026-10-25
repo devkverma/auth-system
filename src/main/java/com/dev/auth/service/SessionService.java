@@ -47,6 +47,30 @@ public class SessionService {
         this.sessionTtl = sessionTtl;
     }
 
+    public enum SessionStatus {
+        ACTIVE,
+        REVOKED,
+        EXPIRED,
+        NOT_FOUND
+    }
+
+    @Transactional(readOnly = true)
+    public SessionStatus getSessionStatus(UUID sessionId, Long userId) {
+        return sessionRepository.findByIdAndUserId(sessionId, userId)
+                .map(session -> {
+                    if (session.getRevokedAt() != null) {
+                        return SessionStatus.REVOKED;
+                    }
+
+                    if (!session.getExpiresAt().isAfter(Instant.now())) {
+                        return SessionStatus.EXPIRED;
+                    }
+
+                    return SessionStatus.ACTIVE;
+                })
+                .orElse(SessionStatus.NOT_FOUND);
+    }
+
     @Transactional
     public Session createSession(Long userId, String deviceName) {
         // Lock this user's row until the transaction commits.

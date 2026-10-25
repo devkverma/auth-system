@@ -3,6 +3,8 @@ package com.dev.auth.config;
 
 import com.dev.auth.security.JwtAuthenticationFilter;
 import com.dev.auth.security.JwtService;
+import com.dev.auth.service.SessionService;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -25,8 +27,10 @@ public class SecurityConfig {
 
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter(
-            JwtService jwtService) {
-        return new JwtAuthenticationFilter(jwtService);
+        JwtService jwtService,
+        SessionService sessionService) {
+
+        return new JwtAuthenticationFilter(jwtService, sessionService);
     }
 
     @Bean

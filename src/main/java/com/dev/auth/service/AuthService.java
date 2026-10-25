@@ -1,6 +1,8 @@
 package com.dev.auth.service;
 
 import java.util.Map;
+import java.util.UUID;
+import io.jsonwebtoken.JwtException;
 import com.dev.auth.dto.RegisterRequest;
 import com.dev.auth.model.User;
 import com.dev.auth.model.Session;
@@ -101,5 +103,19 @@ public class AuthService {
                 "Bearer",
                 jwtService.getExpirationSeconds()
         );
+    }
+
+    @Transactional
+    public void logout(String token, String authenticatedUserId) {
+        Long userId = Long.parseLong(authenticatedUserId);
+
+        UUID sessionId;
+        try {
+            sessionId = jwtService.extractSessionId(token);
+        } catch (JwtException | IllegalArgumentException ex) {
+            throw new BadCredentialsException("Invalid authentication token");
+        }
+
+        sessionService.revokeSession(sessionId, userId);
     }
 }
