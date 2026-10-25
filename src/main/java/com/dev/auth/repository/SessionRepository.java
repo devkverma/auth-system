@@ -2,6 +2,7 @@ package com.dev.auth.repository;
 
 import com.dev.auth.model.Session;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -47,5 +48,18 @@ public interface SessionRepository extends JpaRepository<Session, UUID> {
     Optional<Session> findByIdAndUserId(
         @Param("sessionId") UUID sessionId,
         @Param("userId") Long userId
+    );
+
+    @Modifying
+    @Query("""
+        UPDATE Session s
+        SET s.revokedAt = :now
+        WHERE s.user.id = :userId
+        AND s.revokedAt IS NULL
+        AND s.expiresAt > :now
+        """)
+    int revokeAllActiveSessions(
+            @Param("userId") Long userId,
+            @Param("now") Instant now
     );
 }

@@ -13,6 +13,10 @@ spring:
 
     open-in-view: false
 
+  output:
+    ansi:
+      enabled: ALWAYS
+
 server:
   port: 8080
 

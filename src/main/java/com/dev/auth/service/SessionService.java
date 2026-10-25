@@ -15,6 +15,9 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 @Service
 public class SessionService {
 
@@ -22,6 +25,9 @@ public class SessionService {
     private final UserRepository userRepository;
     private final int maxSessions;
     private final Duration sessionTtl;
+
+    private static final Logger log =
+            LoggerFactory.getLogger(SessionService.class);
 
     public SessionService(
             SessionRepository sessionRepository,
@@ -111,13 +117,17 @@ public class SessionService {
 
     @Transactional
     public void revokeSession(UUID sessionId, Long userId) {
-        Session session = sessionRepository
-            .findByIdAndUserId(sessionId, userId)
-            .orElseThrow(() ->
-                new EntityNotFoundException("Session not found")
-            );
+        Session session = sessionRepository.findByIdAndUserId(sessionId, userId)
+                .orElseThrow(() ->
+                        new EntityNotFoundException("Session not found"));
 
         session.revoke();
+
+        log.info(
+                "Session revoked. userId={}, sessionId={}",
+                userId,
+                sessionId
+        );
     }
 
     @Transactional(readOnly = true)
@@ -126,5 +136,21 @@ public class SessionService {
             userId,
             Instant.now()
         );
+    }
+
+    @Transactional
+    public int revokeAllActiveSessions(Long userId) {
+        int revokedCount = sessionRepository.revokeAllActiveSessions(
+                userId,
+                Instant.now()
+        );
+
+        log.info(
+                "All active sessions revoked. userId={}, revokedCount={}",
+                userId,
+                revokedCount
+        );
+
+        return revokedCount;
     }
 }

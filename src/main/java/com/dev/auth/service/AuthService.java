@@ -7,6 +7,8 @@ import com.dev.auth.dto.RegisterRequest;
 import com.dev.auth.model.User;
 import com.dev.auth.model.Session;
 import com.dev.auth.repository.UserRepository;
+import com.dev.auth.dto.SessionResponse;
+import java.util.List;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -117,5 +119,29 @@ public class AuthService {
         }
 
         sessionService.revokeSession(sessionId, userId);
+    }
+
+    @Transactional(readOnly = true)
+    public List<SessionResponse> getActiveSessions(Long userId) {
+        return sessionService.getActiveSessions(userId)
+                .stream()
+                .map(session -> new SessionResponse(
+                        session.getId(),
+                        session.getCreatedAt(),
+                        session.getLastSeenAt(),
+                        session.getExpiresAt(),
+                        session.getDeviceName()
+                ))
+                .toList();
+    }
+
+    @Transactional
+    public void revokeSession(UUID sessionId, Long userId) {
+        sessionService.revokeSession(sessionId, userId);
+    }
+
+    @Transactional
+    public int logoutAll(Long userId) {
+        return sessionService.revokeAllActiveSessions(userId);
     }
 }
