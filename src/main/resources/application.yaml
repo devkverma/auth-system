@@ -23,7 +23,10 @@ server:
 app:
   jwt:
     secret: ${JWT_SECRET}
-    expiration-ms: 900000
+    # expiration-ms: 900000
+    expiration-ms: 30000
+  cookie:
+    secure: false
   auth:
     max-sessions: 3
     session-ttl: PT168H # PT168H is an ISO-8601 duration representing 168 hours, or seven days.

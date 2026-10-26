@@ -46,7 +46,8 @@ public class SecurityConfig {
                         .requestMatchers(
                                 org.springframework.http.HttpMethod.POST,
                                 "/auth/register",
-                                "/auth/login"
+                                "/auth/login",
+                                "/auth/refresh"
                         ).permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(AbstractHttpConfigurer::disable)
