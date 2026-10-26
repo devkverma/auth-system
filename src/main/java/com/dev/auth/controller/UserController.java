@@ -34,6 +34,8 @@ public class UserController {
                 .status(HttpStatus.OK)
                 .body(Map.of(
                         "userId", user.getId(),
+                        "username", user.getUsername(),
+                        "fullname", user.getFullName(),
                         "email", user.getEmail()
                 ));
     }

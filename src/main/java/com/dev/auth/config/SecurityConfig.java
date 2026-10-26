@@ -20,30 +20,28 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 @Configuration
 public class SecurityConfig {
 
-    @Bean
-    public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
+        @Bean
+        public PasswordEncoder passwordEncoder() {
+                return new BCryptPasswordEncoder();
+        }
 
-    @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(
-        JwtService jwtService,
-        SessionService sessionService) {
+        @Bean
+        public JwtAuthenticationFilter jwtAuthenticationFilter(
+                JwtService jwtService,
+                SessionService sessionService) {
 
-        return new JwtAuthenticationFilter(jwtService, sessionService);
-    }
+                return new JwtAuthenticationFilter(jwtService, sessionService);
+        }
 
-    @Bean
-    public SecurityFilterChain securityFilterChain(
-            HttpSecurity http,
-            JwtAuthenticationFilter jwtFilter
-    ) throws Exception {
-
+        @Bean
+        public SecurityFilterChain securityFilterChain(
+                HttpSecurity http,
+                JwtAuthenticationFilter jwtFilter
+        ) {
         return http
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(
-                                SessionCreationPolicy.STATELESS))
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
                                 org.springframework.http.HttpMethod.POST,
@@ -62,5 +60,5 @@ public class SecurityConfig {
                         )
                 )
                 .build();
-    }
+        }
 }

@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
 import java.time.Instant;
-import java.util.Date;
 import java.util.UUID;
 
 @Service
@@ -25,21 +24,23 @@ public class JwtService {
             @Value("${app.jwt.secret}") String secret,
             @Value("${app.jwt.expiration-ms}") long expirationMs) {
 
-        byte[] keyBytes = Decoders.BASE64.decode(secret);
-        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
-        this.expirationMs = expirationMs;
-
         if (expirationMs <= 0) {
             throw new IllegalArgumentException(
-                "JWT expiration must be positive"
+                    "JWT expiration must be positive"
             );
         }
+
+        byte[] keyBytes = Decoders.BASE64.decode(secret);
+
+        this.signingKey = Keys.hmacShaKeyFor(keyBytes);
+        this.expirationMs = expirationMs;
     }
 
     public String generateToken(
             Long userId,
             String email,
             UUID sessionId) {
+
         Instant now = Instant.now();
         Instant expiresAt = now.plusMillis(expirationMs);
 
@@ -47,8 +48,8 @@ public class JwtService {
                 .subject(userId.toString())
                 .claim("email", email)
                 .claim("sid", sessionId.toString())
-                .issuedAt(Date.from(now))
-                .expiration(Date.from(expiresAt))
+                .claim("iat", now.getEpochSecond())
+                .claim("exp", expiresAt.getEpochSecond())
                 .signWith(signingKey)
                 .compact();
     }
@@ -109,7 +110,10 @@ public class JwtService {
 
             UUID.fromString(sessionId);
 
-            return claims.getExpiration().after(new Date());
+            // Validate expiration using java.time.
+            Instant expiration = claims.getExpiration().toInstant();
+
+            return expiration.isAfter(Instant.now());
 
         } catch (JwtException | IllegalArgumentException ex) {
             return false;
