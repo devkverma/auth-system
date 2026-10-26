@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -103,8 +104,10 @@ public class AuthService {
                 ));
     }
 
-    @Transactional
-    public TokenPair loginWithRefreshToken(LoginRequest request) {
+        @Transactional
+        public TokenPair loginWithRefreshToken(
+                LoginRequest request,
+                HttpServletRequest httpRequest) {
 
         String email = request.email().trim().toLowerCase();
 
@@ -112,27 +115,34 @@ public class AuthService {
 
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> {
-                    log.warn("Login rejected: invalid credentials");
+                        log.warn("Login rejected: invalid credentials");
 
-                    return new BadCredentialsException(
-                            "Invalid email or password");
+                        return new BadCredentialsException(
+                                "Invalid email or password");
                 });
 
         if (!passwordEncoder.matches(
                 request.password(),
                 user.getPasswordHash())) {
 
-            log.warn("Login rejected: invalid credentials");
+                log.warn("Login rejected: invalid credentials");
 
-            throw new BadCredentialsException(
-                    "Invalid email or password");
+                throw new BadCredentialsException(
+                        "Invalid email or password");
         }
 
         log.info("Login credentials validated: userId={}", user.getId());
 
+        // Extract device information from the request headers.
+        String deviceName = httpRequest.getHeader("User-Agent");
+
+        if (deviceName == null || deviceName.isBlank()) {
+                deviceName = "Unknown device";
+        }
+
         Session session = sessionService.createSession(
                 user.getId(),
-                null
+                deviceName
         );
 
         log.info(
@@ -154,7 +164,7 @@ public class AuthService {
         );
 
         return tokens;
-    }
+        }
 
     @Transactional
     public void logout(String token, String authenticatedUserId) {

@@ -1,6 +1,5 @@
 package com.dev.auth.model;
 
-import com.dev.auth.model.Session;
 import jakarta.persistence.*;
 
 import java.time.Instant;

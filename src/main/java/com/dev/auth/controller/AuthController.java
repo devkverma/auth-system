@@ -86,11 +86,12 @@ public class AuthController {
         @PostMapping("/login")
         public ResponseEntity<TokenResponse> login(
                 @Valid @RequestBody LoginRequest request,
+                HttpServletRequest httpRequest,
                 HttpServletResponse response) {
 
         log.info("Login request received");
 
-        TokenPair tokens = authService.loginWithRefreshToken(request);
+        TokenPair tokens = authService.loginWithRefreshToken(request, httpRequest);
 
         refreshTokenCookie.set(
                 response,
